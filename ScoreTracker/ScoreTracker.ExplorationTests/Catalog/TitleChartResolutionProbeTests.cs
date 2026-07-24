@@ -12,11 +12,12 @@ using Xunit.Abstractions;
 namespace ScoreTracker.ExplorationTests.Catalog;
 
 /// <summary>
-///     Resolves every chart-specific title against a real catalog: for each title, does at least one
+///     Resolves every chart-specific title against a real catalog: for each title, does exactly one
 ///     chart in its mix satisfy <see cref="ISpecificChartTitle.AppliesToChart" />? A title whose song
 ///     name, chart type, or level misses the catalog matches nothing, so it never progresses and
-///     never errors — the failure mode that froze thirteen Phoenix 2 titles (and with them
-///     SPECIALIST, which needs all 90 skill titles) until 2026-07-24.
+///     never errors — the failure mode that froze seventeen titles (and with them SPECIALIST, which
+///     needs all 90 skill titles) until 2026-07-24. A title matching several charts is the opposite
+///     bug: it grants off an easier chart of the same song.
 ///     <para>
 ///         This is the check to run after editing a title's song/type/level, and after a mix's chart
 ///         levels shift. It needs a populated database, which CI does not have (its schema is
@@ -68,24 +69,24 @@ public sealed class TitleChartResolutionProbeTests
             .ToArray();
 
         var unresolved = resolutions.Where(r => r.Matches.Length == 0).ToArray();
-        // More than one match is legitimate for the deliberately level-less titles (the [PHOENIX]
-        // double boss renders a "??" stepball, so it matches the song+type at any level). Printed,
-        // not failed — a human reads whether the breadth is the intended one.
+        // Every title names exactly one chart — even the ones the official page renders with a "??"
+        // stepball, which is a hidden level rather than a wildcard. So more than one match means
+        // either a title that is too loose (it would grant off an easier chart of the same song) or
+        // a duplicated catalog row; both are bugs.
         var ambiguous = resolutions.Where(r => r.Matches.Length > 1).ToArray();
 
         _output.WriteLine($"{mix}: {chartTitles.Length} chart titles against {charts.Count} charts — " +
                           $"{resolutions.Count(r => r.Matches.Length == 1)} resolve to exactly one, " +
                           $"{ambiguous.Length} to several, {unresolved.Length} to none.");
-        _output.WriteLine("");
-        _output.WriteLine($"Matched more than one chart ({ambiguous.Length}):");
-        foreach (var (title, matches) in ambiguous)
-            _output.WriteLine($"    {((PhoenixTitle)title).Name}  ->  " +
-                              string.Join(", ", matches.Select(c => c.DifficultyString)));
 
         Assert.True(unresolved.Length == 0,
             $"{unresolved.Length} {mix} title(s) name a chart the catalog does not have, so they can " +
             "never complete: " + string.Join(" · ", unresolved.Select(r =>
                 $"{((PhoenixTitle)r.Title).Name} (\"{r.Title.SongName}\" — {((PhoenixTitle)r.Title).Description})")));
+        Assert.True(ambiguous.Length == 0,
+            $"{ambiguous.Length} {mix} title(s) match more than one chart, so an easier chart of the " +
+            "same song grants them: " + string.Join(" · ", ambiguous.Select(r =>
+                $"{((PhoenixTitle)r.Title).Name} -> {string.Join(", ", r.Matches.Select(c => c.DifficultyString))}")));
     }
 
     /// <summary>

@@ -119,11 +119,13 @@ public sealed class Phoenix2TitleListTests
     }
 
     [Theory]
-    [InlineData(28)]
-    [InlineData(29)]
-    public void TheLevellessPhoenixDoubleBossMatchesAnyLevelOf1948(int level)
+    [InlineData(29, true)]
+    [InlineData(27, false)]
+    [InlineData(24, false)]
+    public void ThePhoenixDoubleBossIsThe1948D29Alone(int level, bool completes)
     {
-        // The [PHOENIX] double boss renders a "??" stepball — no parseable level.
+        // The "??" stepball on the official page is how 1948 D29's level renders, not a wildcard:
+        // the song's easier doubles charts must not hand out the title.
         var chart = new ChartBuilder().WithSongName("1948").WithType(ChartType.Double)
             .WithLevel(level).Build();
         var charts = new Dictionary<Guid, Chart> { [chart.Id] = chart };
@@ -131,7 +133,8 @@ public sealed class Phoenix2TitleListTests
         var progress = Phoenix2TitleList.BuildProgress(charts,
             new[] { Attempt(chart.Id, 900000) }, new HashSet<Name>());
 
-        Assert.True(progress.Single(p => p.Title.Name == "[PHOENIX] DOUBLE BOSS BREAKER").IsComplete);
+        Assert.Equal(completes,
+            progress.Single(p => p.Title.Name == "[PHOENIX] DOUBLE BOSS BREAKER").IsComplete);
     }
 
     [Fact]

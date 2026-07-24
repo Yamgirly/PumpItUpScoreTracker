@@ -331,7 +331,9 @@ public static class Phoenix2TitleList
         new Phoenix2ChartClearTitle("[XX] SINGLE BOSS BREAKER", "ERRORCODE: 0", ChartType.Single, 25),
         new Phoenix2ChartClearTitle("[XX] DOUBLE BOSS BREAKER", "1949", ChartType.Double, 28),
         new Phoenix2ChartClearTitle("[PHOENIX] SINGLE BOSS BREAKER", "1948", ChartType.Single, 26),
-        new Phoenix2ChartClearTitle("[PHOENIX] DOUBLE BOSS BREAKER", "1948", ChartType.Double, null),
+        // The "??" stepball on the official page is how the game displays 1948 D29's level, not an
+        // unknown one — the D24 and D27 render their numbers normally, so only the D29 counts.
+        new Phoenix2ChartClearTitle("[PHOENIX] DOUBLE BOSS BREAKER", "1948", ChartType.Double, 29),
     };
 
     private static readonly IDictionary<Name, PhoenixTitle> TitleLookup = Titles.ToDictionary(n => n.Name);
