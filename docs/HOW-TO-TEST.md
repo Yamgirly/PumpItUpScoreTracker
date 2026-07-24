@@ -78,6 +78,24 @@ dotnet user-secrets set "PiuTest:Password" "..." --project ScoreTracker/ScoreTra
 dotnet test ScoreTracker/ScoreTracker.ExplorationTests/ScoreTracker.ExplorationTests.csproj --filter "FullyQualifiedName~PiuGameLiveSiteTests"
 ```
 
+### Catalog probes — a populated database required
+
+`ExplorationTests/Catalog/` checks the parts of the domain that are hardcoded against catalog data. `TitleChartResolutionProbeTests` walks every chart-specific title in both title lists and asserts at least one real chart satisfies its `AppliesToChart` — the guard against a title naming a song the way the official requirement page abbreviates it ("Phalanx" for `Phalanx "RS2018 edit"`), which matches nothing and leaves the title frozen at zero forever with no error. CI cannot run this: its database is a migrated, empty schema, so every title would "fail" for the wrong reason. **Run it after editing a title's song/type/level, and after a mix's chart levels shift.** Read-only (SELECTs only).
+
+Configuration (skips automatically when absent) — point it at the prod-synced local Aspire database or a read replica:
+
+```sh
+dotnet user-secrets set "CatalogProbe:ConnectionString" "Server=127.0.0.1,14330;Database=ScoreTracker;User Id=sa;Password=...;TrustServerCertificate=true" --project ScoreTracker/ScoreTracker.AppHost
+```
+
+(`SCORETRACKER_CATALOG_CONNECTION` also works and takes precedence.) Then:
+
+```sh
+dotnet test ScoreTracker/ScoreTracker.ExplorationTests/ScoreTracker.ExplorationTests.csproj --filter "FullyQualifiedName~TitleChartResolutionProbe"
+```
+
+The offline half of that guard — spelling drift between the two title lists, plus the corrected names pinned against regression — is `ScoreTracker.Tests/DomainTests/TitleSongNameTests`, and does run on every PR.
+
 ### Discord canary — testing bot required, manual runs only
 
 `ExplorationTests/DiscordCanary/` posts the sample Components V2 score cards to the owner's private lab channel with the **testing** bot and reads them back over REST — catching what component tests can't: Discord API contract drift, emoji-id resolution, and token/permission validity. It is the one exploration test that **writes** to a remote by design (the owner's own lab channel). **Run it manually when a change touches Discord or Communities code.** Messages are left in the channel on purpose: it doubles as a visual gallery of what the cards looked like on every run.
