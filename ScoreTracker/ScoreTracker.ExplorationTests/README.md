@@ -47,3 +47,21 @@ dotnet test ScoreTracker/ScoreTracker.ExplorationTests/ScoreTracker.ExplorationT
 ```
 
 Without credentials configured, every test skips — the assembly is inert.
+
+## Catalog probes (`Catalog/`)
+
+Checks against a **real, populated catalog** — the owner's prod-synced local Aspire database or a
+read replica. `TitleChartResolutionProbeTests` asserts every chart-specific title in both title
+lists resolves to a chart that exists; a title naming a song the way the official requirement page
+abbreviates it matches nothing and stays frozen at zero forever without erroring. Read-only
+SELECTs, and gated like the rest — CI's database is a migrated empty schema, where every title
+would fail for the wrong reason.
+
+```sh
+dotnet user-secrets set "CatalogProbe:ConnectionString" "Server=127.0.0.1,14330;Database=ScoreTracker;User Id=sa;Password=...;TrustServerCertificate=true" \
+  --project ScoreTracker/ScoreTracker.AppHost
+#   or the SCORETRACKER_CATALOG_CONNECTION env var
+
+dotnet test ScoreTracker/ScoreTracker.ExplorationTests/ScoreTracker.ExplorationTests.csproj \
+  --filter "FullyQualifiedName~TitleChartResolutionProbe"
+```

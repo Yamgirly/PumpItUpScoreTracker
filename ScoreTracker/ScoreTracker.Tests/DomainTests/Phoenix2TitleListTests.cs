@@ -137,13 +137,15 @@ public sealed class Phoenix2TitleListTests
     [Fact]
     public void LadderExpertCountsItsTenMembers()
     {
-        // Completing all ten [TWIST S] charts completes [TWIST S] EXPERT; nine does not.
+        // Completing all ten [TWIST S] charts completes [TWIST S] EXPERT; nine does not. The song
+        // names are the catalog's, not the official requirement page's abbreviations — a title
+        // matches on the catalog spelling (TitleSongNameTests).
         var songs = new[]
         {
             ("Scorpion King", 15), ("Street show down", 16), ("U Got Me Rocking", 17),
             ("Solitary 2", 18), ("U Got 2 Know", 19), ("Canon D", 20),
-            ("Love Is A Danger Zone (Cranky Mix)", 21), ("DUEL", 21),
-            ("Love is a Danger Zone pt.2", 22), ("Uranium", 22)
+            ("Love is a Danger Zone(Cranky Mix)", 21), ("DUEL", 21),
+            ("Love is a Danger Zone pt. 2", 22), ("Uranium", 22)
         };
         var charts = songs
             .Select(s => new ChartBuilder().WithSongName(s.Item1).WithType(ChartType.Single)

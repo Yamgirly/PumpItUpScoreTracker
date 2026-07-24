@@ -15,17 +15,18 @@ public sealed class Phoenix2ChartClearTitle : PhoenixTitle, ISpecificChartTitle
 {
     private readonly ChartType _chartType;
     private readonly DifficultyLevel? _level;
-    private readonly Name _songName;
 
     public Phoenix2ChartClearTitle(Name name, Name songName, ChartType chartType, DifficultyLevel? level)
         : base(name,
             $"Clear {songName} {chartType.GetShortHand()}{(level == null ? "??" : ((int)level.Value).ToString())}",
             "Boss Breaker", 1)
     {
-        _songName = songName;
+        SongName = songName;
         _chartType = chartType;
         _level = level;
     }
+
+    public Name SongName { get; }
 
     public override bool PopulatesFromDatabase => false;
 
@@ -36,7 +37,7 @@ public sealed class Phoenix2ChartClearTitle : PhoenixTitle, ISpecificChartTitle
 
     public bool AppliesToChart(Chart chart)
     {
-        return chart.Song.Name == _songName && _chartType == chart.Type &&
+        return chart.Song.Name == SongName && _chartType == chart.Type &&
                (_level == null || _level.Value == chart.Level);
     }
 }
